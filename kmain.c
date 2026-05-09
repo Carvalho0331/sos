@@ -1,5 +1,5 @@
 #include "io.h"
-
+#include "gdt.h"
 /* Framebuffer base address (video memory in text mode) */
 #define FB 0xB8000
 
@@ -80,6 +80,7 @@ int write(char *buf, unsigned int len)
 void kmain(void)
 {
 
+	gdt_init();
 
  serial_initialize();
     serial_write(COM1, "Hello from serial port!\n");
