@@ -1,4 +1,4 @@
-OBJECTS = loader.o kmain.o  io.o
+OBJECTS = loader.o kmain.o  io.o serial.o
 
 CC = gcc
 

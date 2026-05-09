@@ -17,7 +17,11 @@
 
 /* Pointer to video memory */
 char *fb = (char*) FB;
+/* Serial port COM1 base address */
+#define COM1 0x3F8
 
+void serial_initialize(void);
+void serial_write(unsigned short com, const char *str);
 /**
  * fb_write_cell:
  * Writes a character with foreground and background color
@@ -75,6 +79,11 @@ int write(char *buf, unsigned int len)
  */
 void kmain(void)
 {
+
+
+ serial_initialize();
+    serial_write(COM1, "Hello from serial port!\n");
     write("Welcome to SOS", 15);
     write("Hello sir Carvalho", 18);
+
 }
