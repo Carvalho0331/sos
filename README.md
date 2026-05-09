@@ -1,40 +1,117 @@
-```markdown
-# 🧠 Mini Operating System (x86)
+<p align="center">
+  <img src="assets/kernel-banner.png" width="900" alt="SOS Kernel Banner">
+</p>
 
-![GitHub repo size](https://img.shields.io/github/repo-size/Carvalho0331/sos?style=flat-square)
-![GitHub last commit](https://img.shields.io/github/last-commit/Carvalho0331/sos?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+<h1 align="center">🧠 SOS — Mini Operating System</h1>
 
-> Um kernel minimalista desenvolvido do zero em **C** e **Assembly**, com foco na compreensão dos fundamentos de sistemas operativos e interacção directa com o hardware x86.
+<p align="center">
+  <b>Kernel x86 minimalista desenvolvido do zero em C e Assembly</b>
+  <br>
+  Exploração prática dos fundamentos de sistemas operativos, hardware e arquitectura low-level.
+</p>
 
----
-
-## 🎯 Objectivo
-
-Construir um kernel **freestanding** (sem libc) que execute directamente sobre o hardware, explorando:
-
-- ✔️ Bootloader Multiboot
-- ✔️ Escrita na memória de vídeo (framebuffer)
-- ✔️ Controlo do cursor por I/O ports
-- ✔️ Logging via porta série (COM1)
-- ✔️ Segmentação (GDT)
-- ✔️ Interrupções (IDT) e teclado básico
+<p align="center">
+  <img src="https://img.shields.io/github/repo-size/Carvalho0331/sos?style=for-the-badge">
+  <img src="https://img.shields.io/github/last-commit/Carvalho0331/sos?style=for-the-badge">
+  <img src="https://img.shields.io/github/license/Carvalho0331/sos?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Architecture-x86-blue?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Language-C%20%7C%20Assembly-orange?style=for-the-badge">
+</p>
 
 ---
 
-## 📦 Tecnologias
+# 📖 Sobre o Projecto
 
-| Ferramenta       | Função                          |
-|------------------|---------------------------------|
-| **C** (freestanding) | Linguagem principal do kernel |
-| **NASM**         | Assembly para boot e I/O        |
-| **GCC + LD**     | Compilação e linkagem           |
-| **GRUB**         | Bootloader (multiboot)          |
-| **QEMU / Bochs** | Emulação e debug                |
+O **SOS (Simple Operating System)** é um kernel experimental construído directamente sobre a arquitectura **x86**, sem dependência de bibliotecas padrão (*freestanding environment*).
+
+O objectivo do projecto é compreender, na prática, como um sistema operativo comunica com o hardware em baixo nível:
+
+- Inicialização via bootloader
+- Gestão de interrupções
+- Escrita directa em memória de vídeo
+- Comunicação através de portas I/O
+- Configuração de tabelas do processador
+- Drivers básicos de hardware
+
+Este projecto é focado em aprendizagem profunda de:
+- Sistemas Operativos
+- Arquitectura de Computadores
+- Programação Low-Level
+- Engenharia de Sistemas
 
 ---
 
-## 🗂️ Estrutura do Projecto
+# 🚀 Demonstração
+
+<p align="center">
+  <img src="assets/demo.gif" width="850">
+</p>
+
+---
+
+# ✨ Features
+
+## ✅ Implementado
+
+- [x] Kernel Multiboot compatible
+- [x] Boot via GRUB
+- [x] VGA Text Mode
+- [x] Escrita directa no framebuffer
+- [x] Controlo do cursor via portas I/O
+- [x] Logging serial (COM1)
+- [x] Global Descriptor Table (GDT)
+- [x] Interrupt Descriptor Table (IDT)
+- [x] Interrupt handlers em Assembly
+- [x] PIC Remapping
+- [x] Driver básico de teclado
+- [x] Build system com Makefile
+- [x] Execução via QEMU / Bochs
+
+---
+
+## 🛠️ Em Desenvolvimento
+
+- [ ] Paging
+- [ ] Memory Manager
+- [ ] Heap allocator
+- [ ] Timer (PIT)
+- [ ] Shell interactiva
+- [ ] Sistema de ficheiros
+- [ ] Multitasking
+- [ ] Syscalls
+
+---
+
+# ⚙️ Arquitectura do Sistema
+
+```text
+                +-------------------+
+                |       GRUB        |
+                |   Bootloader      |
+                +-------------------+
+                          |
+                          v
+                +-------------------+
+                |     loader.s      |
+                |   Multiboot ASM   |
+                +-------------------+
+                          |
+                          v
+                +-------------------+
+                |      kmain.c      |
+                |   Kernel Entry    |
+                +-------------------+
+                   |      |      |
+                   v      v      v
+                 GDT     IDT   SERIAL
+                   |
+                   v
+                KEYBOARD
+```
+
+---
+
+# 🗂️ Estrutura do Projecto
 
 ```text
 os/
@@ -42,111 +119,194 @@ os/
 │   └── boot/
 │       └── grub/
 │           └── grub.cfg          # Configuração do GRUB
-├── kmain.c                        # Ponto de entrada em C
-├── loader.s                       # Assembly de arranque
-├── link.ld                        # Script de ligação
-├── Makefile                       # Build system
-├── io.s / io.h                    # I/O (outb, inb)
-├── serial.c / serial.h            # Driver da porta série
-├── gdt.c / gdt.h / gdt_asm.s      # GDT (segmentação)
-├── idt.c / idt.h                  # IDT (interrupções)
-├── interrupt.s                    # Handlers assembly
-├── pic.c / pic.h                  # PIC (remapeamento + ACK)
-├── keyboard.c / keyboard.h        # Teclado básico (scancodes)
-└── README.md                      # Este ficheiro
+│
+├── loader.s                       # Bootloader Assembly
+├── kmain.c                        # Entry point do kernel
+├── link.ld                        # Linker script
+├── Makefile                       # Sistema de build
+│
+├── io.s / io.h                    # Operações I/O
+├── serial.c / serial.h            # Driver serial COM1
+│
+├── gdt.c / gdt.h / gdt_asm.s      # Global Descriptor Table
+├── idt.c / idt.h                  # Interrupt Descriptor Table
+├── interrupt.s                    # Interrupt handlers ASM
+│
+├── pic.c / pic.h                  # PIC remapping
+├── keyboard.c / keyboard.h        # Driver de teclado
+│
+└── README.md
 ```
 
 ---
 
-## ✨ Funcionalidades Implementadas
+# 🧩 Tecnologias Utilizadas
 
-| Módulo                     | Estado | Descrição                                                                 |
-|----------------------------|--------|---------------------------------------------------------------------------|
-| **Boot (Multiboot)**       | ✅      | Carrega o kernel a partir do GRUB                                         |
-| **Framebuffer (0xB8000)**  | ✅      | Escrita directa na memória de vídeo (80×25 texto)                         |
-| **Cursor (portas 0x3D4/5)**| ✅      | Movimento do cursor via `outb`                                            |
-| **Driver de ecrã `write()`**| ✅      | Escreve strings e avança cursor                                           |
-| **Porta série (COM1)**     | ✅      | Logging para ficheiro/terminal (QEMU `-serial stdio`)                     |
-| **GDT**                    | ✅      | Null, code e data segments (base 0, limite 4GB, DPL=0)                    |
-| **IDT**                    | ✅      | 256 entradas, handlers genéricos em assembly                              |
-| **PIC**                    | ✅      | Remapeamento para 0x20-0x2F, máscaras e `pic_acknowledge`                 |
-| **Teclado básico**         | ✅      | Leitura de scancodes, tradução para ASCII (sem modificadores)             |
+| Tecnologia | Função |
+|---|---|
+| **C (Freestanding)** | Lógica principal do kernel |
+| **NASM** | Assembly low-level |
+| **GCC** | Compilador |
+| **LD** | Linkagem do kernel |
+| **GRUB** | Bootloader Multiboot |
+| **QEMU** | Emulação |
+| **Bochs** | Debugging |
+| **GNU Make** | Automação da build |
 
 ---
 
-## 🚀 Como Executar
+# 🖥️ Compilar e Executar
+
+## 📦 Dependências
+
+Instalar:
+
+- GCC Cross Compiler (`i686-elf-gcc`)
+- NASM
+- GRUB
+- QEMU
+
+---
+
+## 🔨 Build
 
 ```bash
-make          # compila o kernel e gera a ISO
-make run      # inicia o QEMU com a ISO
+make
 ```
 
-Para visualizar os **logs da porta série** (útil para depuração):
+---
+
+## ▶️ Executar
 
 ```bash
-qemu-system-i386 -cdrom os.iso -serial stdio
+qemu-system-i386 -cdrom myos.iso
 ```
 
-Quando o kernel arrancar, verás:
+---
+
+# 🖨️ Output Serial
+
+Exemplo de inicialização:
 
 ```text
-Kernel started with interrupts
-Press any key...
-```
-
-Cada tecla premida será mostrada no ecrã e também enviada para a porta série.
-
----
-
-## 🧪 Exemplo de Código (kmain.c)
-
-```c
-void kmain(void)
-{
-    gdt_init();                 // inicializa segmentação
-    idt_init();                 // inicializa tabela de interrupções
-    pic_remap();                // remapeia PIC
-    pic_mask(0xFD, 0xFF);       // habilita apenas o teclado
-    keyboard_init();            // prepara o teclado
-    __asm__ volatile ("sti");   // activa interrupções
-
-    serial_initialize();        // inicializa porta série
-    serial_write(COM1, "Kernel started with interrupts\n");
-    write("Press any key...\n", 18);
-
-    while(1);                   // aguarda interrupções
-}
+[OK] Serial initialized
+[OK] GDT loaded
+[OK] IDT loaded
+[OK] PIC remapped
+[OK] Keyboard initialized
 ```
 
 ---
 
-## 🧠 Conceitos Fundamentais Explorados
+# 📸 Screenshots
 
-- **Memory‑mapped I/O** – O framebuffer como área de memória dedicada.
-- **I/O ports** – Comunicação com o cursor (0x3D4/0x3D5) e com o PIC.
-- **GDT** – Segmentação mínima para definir níveis de privilégio.
-- **IDT** – Tabela que associa números de interrupção a handlers.
-- **PIC** – Controlador de interrupções hardware (remapeamento e acknowledge).
-- **Teclado PS/2** – Leitura de scancodes e conversão para ASCII.
+<p align="center">
+  <img src="assets/screen1.png" width="850">
+</p>
 
 ---
 
-## 🔜 Próximos Passos (Roadmap)
+# 📚 Conceitos Explorados
 
-- [ ] Suporte a `\n` e `\b` no `write()` (newline e backspace)
-- [ ] Melhorias no teclado: Shift, Caps Lock, Enter, Backspace
-- [ ] Buffer circular para teclado
-- [ ] Shell simples (comandos `help`, `clear`, `echo`, `reboot`)
-- [ ] Timer (PIT) para base de tempo e multitarefa
-- [ ] Paging (memória virtual)
-- [ ] Modo utilizador (ring 3) e syscalls
+Este projecto explora conceitos fundamentais de:
 
----
-
-## 👨‍💻 Autor
-
-**Salimo Carvalho** – [GitHub](https://github.com/Carvalho0331)  
-Projecto de estudo sobre **sistemas operativos**, **arquitectura x86** e **programação de baixo nível**.
+- Sistemas Operativos
+- Gestão de memória
+- Interrupções de hardware
+- Arquitectura x86
+- Bootloaders
+- Linkagem e ELF
+- Programação freestanding
+- Comunicação directa com hardware
+- Drivers básicos
 
 ---
 
+# 🎯 Objectivo Educacional
+
+Este kernel não foi criado apenas para “funcionar”.
+
+Foi desenvolvido para compreender profundamente:
+
+- Como o computador arranca
+- Como o processador comunica com dispositivos
+- Como interrupções funcionam
+- Como um kernel controla o hardware
+- Como sistemas operativos modernos começaram
+
+Cada componente é implementado manualmente para maximizar compreensão técnica.
+
+---
+
+# 🛣️ Roadmap
+
+## Fase 1 — Base do Kernel
+- [x] Boot
+- [x] VGA
+- [x] Serial
+- [x] GDT
+- [x] IDT
+- [x] Keyboard
+
+## Fase 2 — Gestão de Memória
+- [ ] Paging
+- [ ] Heap
+- [ ] Physical Memory Manager
+
+## Fase 3 — Kernel Interactivo
+- [ ] Shell
+- [ ] Syscalls
+- [ ] Multitasking
+
+## Fase 4 — Sistema Completo
+- [ ] Filesystem
+- [ ] Drivers
+- [ ] User mode
+- [ ] Process scheduler
+
+---
+
+# 📖 Referências
+
+- OSDev Wiki
+- Intel Software Developer Manuals
+- JamesM Kernel Development Tutorials
+- Low Level Learning
+- Computer Systems: A Programmer's Perspective
+
+---
+
+# 🤝 Contribuições
+
+Contribuições, sugestões e melhorias são bem-vindas.
+
+Se quiseres colaborar:
+
+1. Faz fork do projecto
+2. Cria uma branch
+3. Implementa melhorias
+4. Abre um Pull Request
+
+---
+
+# 📜 Licença
+
+Distribuído sob licença MIT.
+
+---
+
+# 👨‍💻 Autor
+
+## Salimo Carvalho
+
+Programador em formação focado em:
+- Sistemas Operativos
+- Desenvolvimento Low-Level
+- Engenharia de Software
+- Arquitectura de Computadores
+
+---
+
+<p align="center">
+  Feito com café, Assembly e curiosidade infinita ☕
+</p>
