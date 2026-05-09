@@ -1,37 +1,65 @@
-OBJECTS = loader.o kmain.o io.o serial.o gdt.o gdt_asm.o \
-          idt.o interrupt.o pic.o keyboard.o interrupt_handler_c.o
+# Directories
+ASM_DIR = asm
+SRC_DIR = src
+INC_DIR = include
 
+# Object files (full paths)
+OBJECTS = $(ASM_DIR)/loader.o \
+          $(ASM_DIR)/io.o \
+          $(ASM_DIR)/gdt_asm.o \
+          $(ASM_DIR)/interrupt.o \
+          $(SRC_DIR)/kmain.o \
+          $(SRC_DIR)/gdt.o \
+          $(SRC_DIR)/idt.o \
+          $(SRC_DIR)/interrupt_handler_c.o \
+          $(SRC_DIR)/keyboard.o \
+          $(SRC_DIR)/pic.o \
+          $(SRC_DIR)/serial.o 
+         
+
+# Tools
 CC = gcc
-
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin \
--fno-stack-protector -nostartfiles -nodefaultlibs \
--Wall -Wextra -Werror -c
-
-LDFLAGS = -T link.ld -melf_i386
-
 AS = nasm
+LD = ld
+
+# Compiler flags for freestanding kernel
+CFLAGS = -m32 -ffreestanding -nostdlib -nostdinc -fno-builtin \
+         -fno-stack-protector -nostartfiles -nodefaultlibs \
+         -Wall -Wextra -Werror -c -I$(INC_DIR)
+
+# Assembler flags
 ASFLAGS = -f elf
 
+# Linker flags
+LDFLAGS = -T link.ld -melf_i386
+
+# Targets
 all: os.iso
 
+# Link kernel
 kernel.elf: $(OBJECTS)
-	ld $(LDFLAGS) $(OBJECTS) -o kernel.elf
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $@
 
+# Build ISO image
 os.iso: kernel.elf
 	cp kernel.elf iso/boot/kernel.elf
 	grub-mkrescue -o os.iso iso
 
-run:
-	qemu-system-i386 -cdrom os.iso
+# Run in QEMU
+run: os.iso
+	qemu-system-i386 -cdrom os.iso -serial stdio
 
-%.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
-
-io.o: io.s
-	nasm -f elf io.s -o io.o
-
-%.o: %.s
+# Rules for assembly files (in asm directory)
+$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 	$(AS) $(ASFLAGS) $< -o $@
 
+# Rules for C files (in src directory)
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $< -o $@
+
+# Clean generated files
 clean:
-	rm -rf *.o *.elf *.iso
+	rm -f $(ASM_DIR)/*.o $(SRC_DIR)/*.o kernel.elf os.iso
+
+# Phony targets
+.PHONY: all run clean
