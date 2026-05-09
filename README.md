@@ -1,23 +1,24 @@
-
 # 🧠 Mini Operating System (x86)
 
 Este projeto é um sistema operativo simples desenvolvido do zero em C e Assembly, com o objetivo de compreender profundamente como um kernel funciona a nível de hardware.
 
 ---
 
-# 🚀 Objetivo
+## 🚀 Objetivo
 
 Construir um kernel básico sem dependências de sistema operativo, explorando:
 
 - Bootloader (Multiboot)
-- Framebuffer (memória de vídeo)
-- Drivers básicos
+- **Framebuffer** (memória de vídeo)
+- **Driver de porta série (COM1)** para logging
+- **Interface `write()`** para output no ecrã
+- **Controlo de cursor** via portas I/O
+- **Segmentação (GDT)** – em progresso
 - Comunicação direta com hardware x86
-- Estrutura inicial de um sistema operativo
 
 ---
 
-# ⚙️ Tecnologias
+## ⚙️ Tecnologias
 
 - C (freestanding - sem libc)
 - Assembly (NASM)
@@ -27,43 +28,54 @@ Construir um kernel básico sem dependências de sistema operativo, explorando:
 
 ---
 
-# 📁 Estrutura do Projeto
-
+## 📁 Estrutura do Projeto
 iso/
 └── boot/
-    └── grub/
-        └── grub.cfg
+└── grub/
+└── grub.cfg
 
-kmain.c
-loader.s
-link.ld
-Makefile
-README.md
+kmain.c # Ponto de entrada do kernel
+loader.s # Assembly de arranque (Multiboot)
+link.ld # Script de ligação
+Makefile # Build system
 
----
+io.s / io.h # Funções de I/O (outb, inb)
+serial.c # Driver da porta série (COM1)
+gdt.c / gdt_asm.s # GDT (em desenvolvimento)
 
-# 🖥️ Funcionalidades atuais
-
-- Inicialização de kernel via Multiboot
-- Escrita direta na memória de vídeo (0xB8000)
-- Print básico no ecrã (framebuffer)
-- Estrutura inicial de drivers
+text
 
 ---
 
-# 🧠 Conceitos estudados
+## 🖥️ Funcionalidades atuais
+
+- ✅ Inicialização do kernel via Multiboot
+- ✅ Escrita direta na memória de vídeo (`0xB8000`)
+- ✅ Print básico no ecrã com **`write(buf, len)`** (avança cursor)
+- ✅ Controlo do cursor (movimento via portas `0x3D4`/`0x3D5`)
+- ✅ **Driver da porta série (COM1)** – configuração e escrita de strings
+- ✅ **Logging duplo**: ecrã (utilizador) e série (depuração)
+- ⏳ Segmentação (GDT) – próxima etapa
+
+---
+
+## 🧠 Conceitos estudados
 
 - Arquitetura x86
-- Processo de boot
-- Memory-mapped I/O
-- Interação direta com hardware
-- Programação de sistemas de baixo nível
-- Estrutura de kernel
+- Processo de boot e Multiboot
+- Memory-mapped I/O (framebuffer)
+- I/O ports (cursor, série)
+- Controlo de hardware sem sistema operativo
+- Estrutura mínima de kernel
 
 ---
 
-# 🚀 Como executar
+## 🚀 Como executar
 
 ```bash
 make
 make run
+Para ver a saída da porta série no QEMU (log do kernel):
+
+bash
+qemu-system-i386 -cdrom os.iso -serial stdio
