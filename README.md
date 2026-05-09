@@ -34,17 +34,6 @@ iso/
 └── grub/
 └── grub.cfg
 
-kmain.c # Ponto de entrada do kernel
-loader.s # Assembly de arranque (Multiboot)
-link.ld # Script de ligação
-Makefile # Build system
-
-io.s / io.h # Funções de I/O (outb, inb)
-serial.c # Driver da porta série (COM1)
-gdt.c / gdt_asm.s # GDT (em desenvolvimento)
-
-text
-
 ---
 
 ## 🖥️ Funcionalidades atuais
