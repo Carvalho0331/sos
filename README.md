@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/kernel-banner.png" width="900" alt="SOS Kernel Banner">
-</p>
-
 <h1 align="center">🧠 SOS — Mini Operating System</h1>
 
 <p align="center">
@@ -196,13 +192,7 @@ Exemplo de inicialização:
 [OK] Keyboard initialized
 ```
 
----
 
-# 📸 Screenshots
-
-<p align="center">
-  <img src="assets/screen1.png" width="850">
-</p>
 
 ---
 
@@ -248,21 +238,7 @@ Cada componente é implementado manualmente para maximizar compreensão técnica
 - [x] IDT
 - [x] Keyboard
 
-## Fase 2 — Gestão de Memória
-- [ ] Paging
-- [ ] Heap
-- [ ] Physical Memory Manager
 
-## Fase 3 — Kernel Interactivo
-- [ ] Shell
-- [ ] Syscalls
-- [ ] Multitasking
-
-## Fase 4 — Sistema Completo
-- [ ] Filesystem
-- [ ] Drivers
-- [ ] User mode
-- [ ] Process scheduler
 
 ---
 
@@ -287,11 +263,7 @@ Se quiseres colaborar:
 3. Implementa melhorias
 4. Abre um Pull Request
 
----
 
-# 📜 Licença
-
-Distribuído sob licença MIT.
 
 ---
 
@@ -299,14 +271,4 @@ Distribuído sob licença MIT.
 
 ## Salimo Carvalho
 
-Programador em formação focado em:
-- Sistemas Operativos
-- Desenvolvimento Low-Level
-- Engenharia de Software
-- Arquitectura de Computadores
 
----
-
-<p align="center">
-  Feito com café, Assembly e curiosidade infinita ☕
-</p>
