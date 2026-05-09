@@ -55,14 +55,26 @@ void fb_move_cursor(unsigned short pos)
 }
 
 /**
+ * write:
+ * Writes len bytes from buf to the screen, advancing the cursor.
+ * (Simplified version: no newline handling, no scroll)
+ */
+int write(char *buf, unsigned int len)
+{
+    static unsigned int cursor_pos = 0;
+    for (unsigned int i = 0; i < len; i++) {
+        fb_write_cell(cursor_pos, buf[i], FB_GREEN, FB_DARK_GREY);
+        cursor_pos++;
+    }
+    fb_move_cursor(cursor_pos);
+    return len;
+}
+
+/**
  * Kernel entry point
  */
 void kmain(void)
 {
-    /* Write "Hi" on top-left corner of screen */
-    fb_write_cell(0, 'H', FB_GREEN, FB_DARK_GREY);
-    fb_write_cell(1, 'i', FB_GREEN, FB_DARK_GREY);
-
-    /* Move cursor after the text */
-    fb_move_cursor(2);
+    write("Welcome to SOS", 15);
+    write("Hello sir Carvalho", 18);
 }
