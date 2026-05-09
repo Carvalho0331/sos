@@ -1,4 +1,4 @@
-OBJECTS = loader.o kmain.o
+OBJECTS = loader.o kmain.o  io.o
 
 CC = gcc
 
@@ -25,6 +25,9 @@ run:
 
 %.o: %.c
 	$(CC) $(CFLAGS) $< -o $@
+
+io.o: io.s
+	nasm -f elf io.s -o io.o
 
 %.o: %.s
 	$(AS) $(ASFLAGS) $< -o $@
