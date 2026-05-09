@@ -1,9 +1,10 @@
+
 <h1 align="center">🧠 SOS — Mini Operating System</h1>
 
 <p align="center">
   <b>Kernel x86 minimalista desenvolvido do zero em C e Assembly</b>
   <br>
-  Exploração prática dos fundamentos de sistemas operativos, hardware e arquitectura low-level.
+  Exploração prática da arquitectura de sistemas operativos e comunicação directa com hardware.
 </p>
 
 <p align="center">
@@ -12,28 +13,25 @@
   <img src="https://img.shields.io/github/license/Carvalho0331/sos?style=for-the-badge">
   <img src="https://img.shields.io/badge/Architecture-x86-blue?style=for-the-badge">
   <img src="https://img.shields.io/badge/Language-C%20%7C%20Assembly-orange?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Environment-Freestanding-darkgreen?style=for-the-badge">
 </p>
 
 ---
 
 # 📖 Sobre o Projecto
 
-O **SOS (Simple Operating System)** é um kernel experimental construído directamente sobre a arquitectura **x86**, sem dependência de bibliotecas padrão (*freestanding environment*).
+O **SOS (Simple Operating System)** é um kernel experimental desenvolvido do zero sobre a arquitectura **x86**, sem dependência de bibliotecas padrão (*freestanding environment*).
 
-O objectivo do projecto é compreender, na prática, como um sistema operativo comunica com o hardware em baixo nível:
+O projecto foi criado com foco educacional e experimental para compreender profundamente como sistemas operativos funcionam internamente:
 
-- Inicialização via bootloader
+- Processo de boot
 - Gestão de interrupções
-- Escrita directa em memória de vídeo
-- Comunicação através de portas I/O
-- Configuração de tabelas do processador
-- Drivers básicos de hardware
+- Comunicação com hardware
+- Estruturas do processador
+- Drivers básicos
+- Arquitectura low-level
 
-Este projecto é focado em aprendizagem profunda de:
-- Sistemas Operativos
-- Arquitectura de Computadores
-- Programação Low-Level
-- Engenharia de Sistemas
+Ao contrário de aplicações tradicionais, este kernel executa directamente sobre o hardware.
 
 ---
 
@@ -52,15 +50,15 @@ Este projecto é focado em aprendizagem profunda de:
 - [x] Kernel Multiboot compatible
 - [x] Boot via GRUB
 - [x] VGA Text Mode
-- [x] Escrita directa no framebuffer
+- [x] Escrita directa na memória de vídeo
 - [x] Controlo do cursor via portas I/O
-- [x] Logging serial (COM1)
+- [x] Logging serial via COM1
 - [x] Global Descriptor Table (GDT)
 - [x] Interrupt Descriptor Table (IDT)
 - [x] Interrupt handlers em Assembly
 - [x] PIC Remapping
 - [x] Driver básico de teclado
-- [x] Build system com Makefile
+- [x] Build automatizada com Makefile
 - [x] Execução via QEMU / Bochs
 
 ---
@@ -70,11 +68,11 @@ Este projecto é focado em aprendizagem profunda de:
 - [ ] Paging
 - [ ] Memory Manager
 - [ ] Heap allocator
-- [ ] Timer (PIT)
+- [ ] PIT Timer
 - [ ] Shell interactiva
 - [ ] Sistema de ficheiros
-- [ ] Multitasking
 - [ ] Syscalls
+- [ ] Multitasking
 
 ---
 
@@ -83,13 +81,13 @@ Este projecto é focado em aprendizagem profunda de:
 ```text
                 +-------------------+
                 |       GRUB        |
-                |   Bootloader      |
+                |    Bootloader     |
                 +-------------------+
                           |
                           v
                 +-------------------+
                 |     loader.s      |
-                |   Multiboot ASM   |
+                |  Multiboot ASM    |
                 +-------------------+
                           |
                           v
@@ -110,28 +108,126 @@ Este projecto é focado em aprendizagem profunda de:
 # 🗂️ Estrutura do Projecto
 
 ```text
-os/
-├── iso/
-│   └── boot/
-│       └── grub/
-│           └── grub.cfg          # Configuração do GRUB
+.
+├── Makefile                      # Sistema de build automatizado
+├── README.md                     # Documentação principal
+├── link.ld                       # Linker script do kernel
+├── kernel.elf                    # Kernel compilado
+├── os.iso                        # Imagem ISO bootável
 │
-├── loader.s                       # Bootloader Assembly
-├── kmain.c                        # Entry point do kernel
-├── link.ld                        # Linker script
-├── Makefile                       # Sistema de build
+├── asm/                          # Código Assembly low-level
+│   ├── loader.s                  # Entrada Multiboot
+│   ├── io.s                      # Operações I/O (inb/outb)
+│   ├── interrupt.s               # Interrupt handlers ASM
+│   ├── gdt_asm.s                 # Carregamento da GDT
+│   │
+│   ├── loader.o
+│   ├── io.o
+│   ├── interrupt.o
+│   └── gdt_asm.o
 │
-├── io.s / io.h                    # Operações I/O
-├── serial.c / serial.h            # Driver serial COM1
+├── include/                      # Headers do kernel
+│   ├── gdt.h
+│   ├── idt.h
+│   ├── io.h
+│   ├── keyboard.h
+│   ├── pic.h
+│   └── serial.h
 │
-├── gdt.c / gdt.h / gdt_asm.s      # Global Descriptor Table
-├── idt.c / idt.h                  # Interrupt Descriptor Table
-├── interrupt.s                    # Interrupt handlers ASM
+├── src/                          # Código-fonte principal do kernel
+│   ├── kmain.c                   # Entry point do kernel
+│   ├── serial.c                  # Driver serial COM1
+│   ├── gdt.c                     # Global Descriptor Table
+│   ├── idt.c                     # Interrupt Descriptor Table
+│   ├── pic.c                     # PIC remapping
+│   ├── keyboard.c                # Driver de teclado
+│   ├── interrupt_handler_c.c     # Handlers em C
+│   │
+│   ├── kmain.o
+│   ├── serial.o
+│   ├── gdt.o
+│   ├── idt.o
+│   ├── pic.o
+│   ├── keyboard.o
+│   └── interrupt_handler_c.o
 │
-├── pic.c / pic.h                  # PIC remapping
-├── keyboard.c / keyboard.h        # Driver de teclado
-│
-└── README.md
+└── iso/
+    └── boot/
+        ├── kernel.elf            # Kernel copiado para boot
+        │
+        └── grub/
+            └── grub.cfg          # Configuração do GRUB
+```
+
+---
+
+# 🧩 Organização da Arquitectura
+
+## 📁 `asm/`
+
+Contém código Assembly responsável pelas operações mais próximas do hardware e do processador:
+
+- Inicialização do kernel
+- Manipulação de interrupções
+- Instruções privilegiadas
+- Comunicação via portas I/O
+
+---
+
+## 📁 `include/`
+
+Headers partilhados entre os módulos do kernel.
+
+Define:
+- Estruturas
+- Funções
+- Macros
+- Interfaces do sistema
+
+---
+
+## 📁 `src/`
+
+Implementação principal do kernel em C.
+
+Responsável por:
+- Inicialização do sistema
+- Drivers básicos
+- Gestão de interrupções
+- Comunicação serial
+- Teclado
+- Estruturas do processador
+
+---
+
+## 📁 `iso/`
+
+Estrutura final utilizada para gerar a ISO bootável com GRUB.
+
+Aqui o kernel é preparado para execução no QEMU ou hardware real.
+
+---
+
+# ⚙️ Fluxo de Inicialização
+
+```text
+GRUB
+  ↓
+loader.s
+  ↓
+kmain.c
+  ↓
+Serial Initialization
+  ↓
+GDT Setup
+  ↓
+IDT Setup
+  ↓
+PIC Remapping
+  ↓
+Keyboard Driver
+  ↓
+Kernel Running
 ```
 
 ---
@@ -141,8 +237,8 @@ os/
 | Tecnologia | Função |
 |---|---|
 | **C (Freestanding)** | Lógica principal do kernel |
-| **NASM** | Assembly low-level |
-| **GCC** | Compilador |
+| **NASM** | Programação Assembly |
+| **GCC** | Compilação |
 | **LD** | Linkagem do kernel |
 | **GRUB** | Bootloader Multiboot |
 | **QEMU** | Emulação |
@@ -157,14 +253,15 @@ os/
 
 Instalar:
 
-- GCC Cross Compiler (`i686-elf-gcc`)
-- NASM
-- GRUB
-- QEMU
+- `i686-elf-gcc`
+- `nasm`
+- `grub`
+- `xorriso`
+- `qemu-system-x86`
 
 ---
 
-## 🔨 Build
+## 🔨 Compilar
 
 ```bash
 make
@@ -175,7 +272,7 @@ make
 ## ▶️ Executar
 
 ```bash
-qemu-system-i386 -cdrom myos.iso
+qemu-system-i386 -cdrom os.iso
 ```
 
 ---
@@ -192,7 +289,13 @@ Exemplo de inicialização:
 [OK] Keyboard initialized
 ```
 
+---
 
+# 📸 Screenshots
+
+<p align="center">
+  <img src="assets/screen1.png" width="850">
+</p>
 
 ---
 
@@ -201,14 +304,16 @@ Exemplo de inicialização:
 Este projecto explora conceitos fundamentais de:
 
 - Sistemas Operativos
-- Gestão de memória
-- Interrupções de hardware
 - Arquitectura x86
 - Bootloaders
-- Linkagem e ELF
-- Programação freestanding
-- Comunicação directa com hardware
+- Linkers e ELF
+- Programação Freestanding
+- Gestão de interrupções
 - Drivers básicos
+- Comunicação directa com hardware
+- Segmentação
+- I/O ports
+- Memória de vídeo VGA
 
 ---
 
@@ -219,24 +324,38 @@ Este kernel não foi criado apenas para “funcionar”.
 Foi desenvolvido para compreender profundamente:
 
 - Como o computador arranca
-- Como o processador comunica com dispositivos
+- Como o processador executa código
 - Como interrupções funcionam
-- Como um kernel controla o hardware
+- Como drivers comunicam com hardware
+- Como kernels reais são estruturados
 - Como sistemas operativos modernos começaram
 
 Cada componente é implementado manualmente para maximizar compreensão técnica.
 
 ---
 
+# 📦 Estatísticas do Projecto
+
+| Item | Quantidade |
+|---|---|
+| Directórios | 7 |
+| Ficheiros | 35 |
+| Linguagens | C + Assembly |
+| Arquitectura | x86 |
+| Ambiente | Freestanding |
+| Bootloader | GRUB |
+
+---
+
 # 🛣️ Roadmap
 
 ## Fase 1 — Base do Kernel
-- [x] Boot
-- [x] VGA
-- [x] Serial
+- [x] Bootloader
+- [x] VGA Text Mode
+- [x] Serial COM1
 - [x] GDT
 - [x] IDT
-- [x] Keyboard
+- [x] Keyboard Driver
 
 
 
@@ -256,13 +375,32 @@ Cada componente é implementado manualmente para maximizar compreensão técnica
 
 Contribuições, sugestões e melhorias são bem-vindas.
 
-Se quiseres colaborar:
+## Como contribuir
 
-1. Faz fork do projecto
-2. Cria uma branch
-3. Implementa melhorias
-4. Abre um Pull Request
+```bash
+git clone https://github.com/Carvalho0331/sos.git
+cd sos
+```
 
+Cria uma branch:
+
+```bash
+git checkout -b minha-feature
+```
+
+Faz commit:
+
+```bash
+git commit -m "feat: nova funcionalidade"
+```
+
+Envia para o GitHub:
+
+```bash
+git push origin minha-feature
+```
+
+Depois abre um Pull Request 🚀
 
 
 ---
@@ -270,5 +408,4 @@ Se quiseres colaborar:
 # 👨‍💻 Autor
 
 ## Salimo Carvalho
-
 
