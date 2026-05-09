@@ -1,4 +1,5 @@
-OBJECTS = loader.o kmain.o  io.o serial.o gdt.o gdt_asm.o
+OBJECTS = loader.o kmain.o io.o serial.o gdt.o gdt_asm.o \
+          idt.o interrupt.o pic.o keyboard.o interrupt_handler_c.o
 
 CC = gcc
 

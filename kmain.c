@@ -1,5 +1,9 @@
 #include "io.h"
 #include "gdt.h"
+#include "idt.h"
+#include "pic.h"
+#include "keyboard.h"
+#include "serial.h"
 /* Framebuffer base address (video memory in text mode) */
 #define FB 0xB8000
 
@@ -80,11 +84,19 @@ int write(char *buf, unsigned int len)
 void kmain(void)
 {
 
-	gdt_init();
+   gdt_init();
+    idt_init();
+    pic_remap();
+    pic_mask(0xFD, 0xFF);   /* enable keyboard only */
+    keyboard_init();
 
- serial_initialize();
-    serial_write(COM1, "Hello from serial port!\n");
-    write("Welcome to SOS", 15);
+    __asm__ volatile ("sti");
+
+    serial_initialize();
+    serial_write(COM1, "Kernel started with interrupts\n");
+write("Welcome to SOS", 15);
     write("Hello sir Carvalho", 18);
+    write("Press any key...\n", 18);
 
+    while(1);               /* idle loop, interrupts will fire */
 }
