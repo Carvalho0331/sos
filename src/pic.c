@@ -14,22 +14,25 @@ static void io_wait(void) { outb(0x80, 0); }
 
 void pic_remap(void)
 {
-    unsigned char mask1 = inb(PIC1_DATA);
-    unsigned char mask2 = inb(PIC2_DATA);
+    /* BUG FIX: Do NOT save/restore old BIOS masks — the BIOS leaves all
+     * IRQs masked (0xFF/0xFF).  Restoring those masks after remap would
+     * silently block every interrupt, including IRQ0 (timer) and IRQ1
+     * (keyboard).  We leave both PICs fully masked here and let kmain
+     * call pic_mask() with the desired mask immediately after. */
 
     outb(PIC1_CMD, ICW1_INIT | ICW1_ICW4);
     io_wait();
     outb(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
     io_wait();
 
-    outb(PIC1_DATA, 0x20);
+    outb(PIC1_DATA, 0x20);   /* PIC1 vector offset → IRQ0-7 = INT 0x20-0x27 */
     io_wait();
-    outb(PIC2_DATA, 0x28);
+    outb(PIC2_DATA, 0x28);   /* PIC2 vector offset → IRQ8-15 = INT 0x28-0x2F */
     io_wait();
 
-    outb(PIC1_DATA, 0x04);
+    outb(PIC1_DATA, 0x04);   /* tell PIC1 there is a slave at IRQ2 */
     io_wait();
-    outb(PIC2_DATA, 0x02);
+    outb(PIC2_DATA, 0x02);   /* tell PIC2 its cascade identity */
     io_wait();
 
     outb(PIC1_DATA, ICW4_8086);
@@ -37,8 +40,9 @@ void pic_remap(void)
     outb(PIC2_DATA, ICW4_8086);
     io_wait();
 
-    outb(PIC1_DATA, mask1);
-    outb(PIC2_DATA, mask2);
+    /* Leave all IRQs masked; kmain will unmask what it needs. */
+    outb(PIC1_DATA, 0xFF);
+    outb(PIC2_DATA, 0xFF);
 }
 
 void pic_mask(unsigned char mask1, unsigned char mask2)

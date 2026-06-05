@@ -1,4 +1,3 @@
-
 <h1 align="center">🧠 SOS — Mini Operating System</h1>
 
 <p align="center">
@@ -8,12 +7,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/repo-size/Carvalho0331/sos?style=for-the-badge">
-  <img src="https://img.shields.io/github/last-commit/Carvalho0331/sos?style=for-the-badge">
-  <img src="https://img.shields.io/github/license/Carvalho0331/sos?style=for-the-badge">
   <img src="https://img.shields.io/badge/Architecture-x86-blue?style=for-the-badge">
   <img src="https://img.shields.io/badge/Language-C%20%7C%20Assembly-orange?style=for-the-badge">
   <img src="https://img.shields.io/badge/Environment-Freestanding-darkgreen?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Status-Feature--Complete-brightgreen?style=for-the-badge">
 </p>
 
 ---
@@ -21,25 +18,6 @@
 # 📖 Sobre o Projecto
 
 O **SOS (Simple Operating System)** é um kernel experimental desenvolvido do zero sobre a arquitectura **x86**, sem dependência de bibliotecas padrão (*freestanding environment*).
-
-O projecto foi criado com foco educacional e experimental para compreender profundamente como sistemas operativos funcionam internamente:
-
-- Processo de boot
-- Gestão de interrupções
-- Comunicação com hardware
-- Estruturas do processador
-- Drivers básicos
-- Arquitectura low-level
-
-Ao contrário de aplicações tradicionais, este kernel executa directamente sobre o hardware.
-
----
-
-# 🚀 Demonstração
-
-<p align="center">
-  <img src="assets/demo.gif" width="850">
-</p>
 
 ---
 
@@ -49,7 +27,7 @@ Ao contrário de aplicações tradicionais, este kernel executa directamente sob
 
 - [x] Kernel Multiboot compatible
 - [x] Boot via GRUB
-- [x] VGA Text Mode
+- [x] VGA Text Mode (full driver with scrolling, colour, backspace)
 - [x] Escrita directa na memória de vídeo
 - [x] Controlo do cursor via portas I/O
 - [x] Logging serial via COM1
@@ -58,49 +36,90 @@ Ao contrário de aplicações tradicionais, este kernel executa directamente sob
 - [x] Interrupt handlers em Assembly
 - [x] PIC Remapping
 - [x] Driver básico de teclado
+- [x] **PIT Timer** — IRQ0 @ 100 Hz, contador de ticks, `pit_sleep()`
+- [x] **Shell interactiva** — comandos: `help`, `clear`, `ticks`, `meminfo`, `tasks`, `gui`, `reboot`
+- [x] **Memory Manager** — bitmap allocator (páginas físicas) + heap first-fit (`kmalloc`/`kfree`)
+- [x] **Heap Allocator** — 1 MB heap em 0x200000, coalescing de blocos livres
+- [x] **Paging** — identity map 0–4 MB, `paging_enable()` disponível
+- [x] **Syscalls** — INT 0x80 com `SYS_WRITE`, `SYS_EXIT`, `SYS_GETKEY`
+- [x] **Multitasking** — cooperative round-robin (`task_create`, `task_yield`)
+- [x] **GUI Mode** — menu gráfico em VGA text mode, navegação com setas/Enter/ESC
 - [x] Build automatizada com Makefile
-- [x] Execução via QEMU / Bochs
+- [x] Execução via QEMU
 
 ---
 
-## 🛠️ Em Desenvolvimento
+# 🖥️ GUI — Modo Gráfico
 
-- [ ] Paging
-- [ ] Memory Manager
-- [ ] Heap allocator
-- [ ] PIT Timer
-- [ ] Shell interactiva
-- [ ] Sistema de ficheiros
-- [ ] Syscalls
-- [ ] Multitasking
+O comando `gui` na shell lança o modo gráfico:
+
+```
+SOS> gui
+```
+
+### Controlos
+
+| Tecla      | Acção                          |
+|------------|-------------------------------|
+| ↑ / ↓      | Mover selecção                |
+| Enter      | Executar opção seleccionada   |
+| ESC        | Voltar à shell                |
+
+### Opções do menu
+
+| Opção         | Descrição                                   |
+|---------------|---------------------------------------------|
+| System Info   | Arquitectura, endereços de memória, VGA     |
+| Show Ticks    | Contador de ticks PIT e uptime aproximado   |
+| About SOS     | Informação sobre o projecto                 |
+| Exit GUI      | Sair do modo gráfico                        |
+
+---
+
+# 💻 Shell Interactiva
+
+Após o boot aparece a prompt `SOS>`. Comandos disponíveis:
+
+| Comando   | Descrição                                        |
+|-----------|--------------------------------------------------|
+| `help`    | Lista todos os comandos                          |
+| `clear`   | Limpa o ecrã                                     |
+| `ticks`   | Mostra o contador de ticks do PIT (IRQ0)         |
+| `meminfo` | Mostra informação sobre o heap e memória física  |
+| `tasks`   | Mostra estado das tarefas                        |
+| `gui`     | Abre o modo gráfico                              |
+| `reboot`  | Reinicia a máquina (triple fault)                |
 
 ---
 
 # ⚙️ Arquitectura do Sistema
 
 ```text
-                +-------------------+
-                |       GRUB        |
-                |    Bootloader     |
-                +-------------------+
-                          |
-                          v
-                +-------------------+
-                |     loader.s      |
-                |  Multiboot ASM    |
-                +-------------------+
-                          |
-                          v
-                +-------------------+
-                |      kmain.c      |
-                |   Kernel Entry    |
-                +-------------------+
-                   |      |      |
-                   v      v      v
-                 GDT     IDT   SERIAL
-                   |
-                   v
-                KEYBOARD
+                 +-------------------+
+                 |       GRUB        |
+                 |    Bootloader     |
+                 +-------------------+
+                           |
+                           v
+                 +-------------------+
+                 |     loader.s      |
+                 |  Multiboot ASM    |
+                 +-------------------+
+                           |
+                           v
+                 +-------------------+
+                 |      kmain.c      |
+                 |   Kernel Entry    |
+                 +-------------------+
+          |       |      |      |       |
+          v       v      v      v       v
+        GDT     IDT    PIT    MM    PAGING
+                  |      |
+                  v      v
+               SYSCALL  SHELL ←── KEYBOARD
+                           |
+                           v
+                          GUI
 ```
 
 ---
@@ -109,102 +128,55 @@ Ao contrário de aplicações tradicionais, este kernel executa directamente sob
 
 ```text
 .
-├── Makefile                      # Sistema de build automatizado
-├── README.md                     # Documentação principal
-├── link.ld                       # Linker script do kernel
-├── kernel.elf                    # Kernel compilado
-├── os.iso                        # Imagem ISO bootável
+├── Makefile                        # Build system
+├── README.md                       # Documentação
+├── link.ld                         # Linker script
 │
-├── asm/                          # Código Assembly low-level
-│   ├── loader.s                  # Entrada Multiboot
-│   ├── io.s                      # Operações I/O (inb/outb)
-│   ├── interrupt.s               # Interrupt handlers ASM
-│   ├── gdt_asm.s                 # Carregamento da GDT
-│   │
-│   ├── loader.o
-│   ├── io.o
-│   ├── interrupt.o
-│   └── gdt_asm.o
+├── asm/
+│   ├── loader.s                    # Multiboot entry
+│   ├── io.s                        # inb / outb
+│   ├── interrupt.s                 # 256 ISR stubs + common handler
+│   ├── gdt_asm.s                   # lgdt + segment reload
+│   └── syscall_stub.s              # INT 0x80 ASM trampoline  [NEW]
 │
-├── include/                      # Headers do kernel
+├── include/
 │   ├── gdt.h
 │   ├── idt.h
 │   ├── io.h
 │   ├── keyboard.h
 │   ├── pic.h
-│   └── serial.h
+│   ├── serial.h
+│   ├── vga.h                       # [NEW] Full VGA driver API
+│   ├── pit.h                       # [NEW] PIT timer
+│   ├── mm.h                        # [NEW] Memory manager + heap
+│   ├── paging.h                    # [NEW] Paging
+│   ├── syscall.h                   # [NEW] Syscall interface
+│   ├── task.h                      # [NEW] Cooperative multitasking
+│   ├── shell.h                     # [NEW] Interactive shell
+│   └── gui.h                       # [NEW] GUI mode
 │
-├── src/                          # Código-fonte principal do kernel
-│   ├── kmain.c                   # Entry point do kernel
-│   ├── serial.c                  # Driver serial COM1
-│   ├── gdt.c                     # Global Descriptor Table
-│   ├── idt.c                     # Interrupt Descriptor Table
-│   ├── pic.c                     # PIC remapping
-│   ├── keyboard.c                # Driver de teclado
-│   ├── interrupt_handler_c.c     # Handlers em C
-│   │
-│   ├── kmain.o
-│   ├── serial.o
-│   ├── gdt.o
-│   ├── idt.o
-│   ├── pic.o
-│   ├── keyboard.o
-│   └── interrupt_handler_c.o
+├── src/
+│   ├── kmain.c                     # Kernel entry (updated)
+│   ├── vga.c                       # [NEW] VGA driver (scrolling, colour)
+│   ├── gdt.c
+│   ├── idt.c
+│   ├── interrupt_handler_c.c       # Updated: PIT + shell routing
+│   ├── keyboard.c
+│   ├── pic.c
+│   ├── serial.c
+│   ├── pit.c                       # [NEW] PIT driver
+│   ├── mm.c                        # [NEW] Page allocator + heap
+│   ├── paging.c                    # [NEW] Identity-map paging
+│   ├── syscall.c                   # [NEW] INT 0x80 handler
+│   ├── task.c                      # [NEW] Cooperative scheduler
+│   ├── shell.c                     # [NEW] Interactive shell
+│   └── gui.c                       # [NEW] VGA GUI mode
 │
 └── iso/
     └── boot/
-        ├── kernel.elf            # Kernel copiado para boot
-        │
         └── grub/
-            └── grub.cfg          # Configuração do GRUB
+            └── grub.cfg
 ```
-
----
-
-# 🧩 Organização da Arquitectura
-
-## 📁 `asm/`
-
-Contém código Assembly responsável pelas operações mais próximas do hardware e do processador:
-
-- Inicialização do kernel
-- Manipulação de interrupções
-- Instruções privilegiadas
-- Comunicação via portas I/O
-
----
-
-## 📁 `include/`
-
-Headers partilhados entre os módulos do kernel.
-
-Define:
-- Estruturas
-- Funções
-- Macros
-- Interfaces do sistema
-
----
-
-## 📁 `src/`
-
-Implementação principal do kernel em C.
-
-Responsável por:
-- Inicialização do sistema
-- Drivers básicos
-- Gestão de interrupções
-- Comunicação serial
-- Teclado
-- Estruturas do processador
-
----
-
-## 📁 `iso/`
-
-Estrutura final utilizada para gerar a ISO bootável com GRUB.
-
-Aqui o kernel é preparado para execução no QEMU ou hardware real.
 
 ---
 
@@ -213,21 +185,22 @@ Aqui o kernel é preparado para execução no QEMU ou hardware real.
 ```text
 GRUB
   ↓
-loader.s
+loader.s (Multiboot)
   ↓
 kmain.c
-  ↓
-Serial Initialization
-  ↓
-GDT Setup
-  ↓
-IDT Setup
-  ↓
-PIC Remapping
-  ↓
-Keyboard Driver
-  ↓
-Kernel Running
+  ↓ GDT setup
+  ↓ IDT setup
+  ↓ PIC remap (IRQ0+IRQ1 unmasked)
+  ↓ PIT init  (100 Hz)
+  ↓ MM init   (bitmap + heap)
+  ↓ Paging init (identity map, disabled)
+  ↓ Syscall init (INT 0x80 gate)
+  ↓ Keyboard init
+  ↓ Serial init
+  ↓ VGA init + welcome banner
+  ↓ Shell init ("SOS> ")
+  ↓ STI
+  ↓ HLT loop (interrupts drive everything)
 ```
 
 ---
@@ -237,12 +210,11 @@ Kernel Running
 | Tecnologia | Função |
 |---|---|
 | **C (Freestanding)** | Lógica principal do kernel |
-| **NASM** | Programação Assembly |
+| **NASM** | Assembly (loader, ISR stubs, syscall stub) |
 | **GCC** | Compilação |
 | **LD** | Linkagem do kernel |
 | **GRUB** | Bootloader Multiboot |
 | **QEMU** | Emulação |
-| **Bochs** | Debugging |
 | **GNU Make** | Automação da build |
 
 ---
@@ -251,13 +223,13 @@ Kernel Running
 
 ## 📦 Dependências
 
-Instalar:
+```bash
+# Debian / Ubuntu
+sudo apt install gcc nasm grub-pc-bin grub-common xorriso qemu-system-x86
+```
 
-- `i686-elf-gcc`
-- `nasm`
-- `grub`
-- `xorriso`
-- `qemu-system-x86`
+> **Nota:** usa `gcc` com `-m32`. Garante que tens as libc32 dev instaladas:
+> `sudo apt install gcc-multilib`
 
 ---
 
@@ -269,85 +241,33 @@ make
 
 ---
 
-## ▶️ Executar
+## ▶️ Executar (com janela QEMU)
 
 ```bash
-qemu-system-i386 -cdrom os.iso
+make run
+# ou directamente:
+qemu-system-i386 -cdrom os.iso -serial stdio
+```
+
+## ▶️ Executar (headless / apenas serial)
+
+```bash
+make run-headless
 ```
 
 ---
 
-# 🖨️ Output Serial
+## 🖱️ Testar o GUI
 
-Exemplo de inicialização:
-
-```text
-[OK] Serial initialized
-[OK] GDT loaded
-[OK] IDT loaded
-[OK] PIC remapped
-[OK] Keyboard initialized
+```
+SOS> gui
 ```
 
----
-
-# 📸 Screenshots
-
-<p align="center">
-  <img src="assets/screen1.png" width="850">
-</p>
+Use ↑ ↓ para navegar, Enter para seleccionar, ESC para sair.
 
 ---
 
-# 📚 Conceitos Explorados
-
-Este projecto explora conceitos fundamentais de:
-
-- Sistemas Operativos
-- Arquitectura x86
-- Bootloaders
-- Linkers e ELF
-- Programação Freestanding
-- Gestão de interrupções
-- Drivers básicos
-- Comunicação directa com hardware
-- Segmentação
-- I/O ports
-- Memória de vídeo VGA
-
----
-
-# 🎯 Objectivo Educacional
-
-Este kernel não foi criado apenas para “funcionar”.
-
-Foi desenvolvido para compreender profundamente:
-
-- Como o computador arranca
-- Como o processador executa código
-- Como interrupções funcionam
-- Como drivers comunicam com hardware
-- Como kernels reais são estruturados
-- Como sistemas operativos modernos começaram
-
-Cada componente é implementado manualmente para maximizar compreensão técnica.
-
----
-
-# 📦 Estatísticas do Projecto
-
-| Item | Quantidade |
-|---|---|
-| Directórios | 7 |
-| Ficheiros | 35 |
-| Linguagens | C + Assembly |
-| Arquitectura | x86 |
-| Ambiente | Freestanding |
-| Bootloader | GRUB |
-
----
-
-# 🛣️ Roadmap
+# 🗺️ Roadmap
 
 ## Fase 1 — Base do Kernel
 - [x] Bootloader
@@ -357,7 +277,21 @@ Cada componente é implementado manualmente para maximizar compreensão técnica
 - [x] IDT
 - [x] Keyboard Driver
 
+## Fase 2 — Sistema Operativo
+- [x] PIT Timer
+- [x] Shell interactiva
+- [x] Memory Manager (bitmap + heap)
+- [x] Heap Allocator (`kmalloc` / `kfree`)
+- [x] Paging (identity map, enable/disable)
+- [x] Syscalls (INT 0x80)
+- [x] Multitasking cooperativo
+- [x] GUI em VGA text mode
 
+## Fase 3 — Futuro
+- [ ] Paging completo com espaços de endereços separados
+- [ ] Sistema de ficheiros (FAT12 ou simples)
+- [ ] Preemptive multitasking via PIT
+- [ ] Modo utilizador (ring 3)
 
 ---
 
@@ -371,41 +305,6 @@ Cada componente é implementado manualmente para maximizar compreensão técnica
 
 ---
 
-# 🤝 Contribuições
-
-Contribuições, sugestões e melhorias são bem-vindas.
-
-## Como contribuir
-
-```bash
-git clone https://github.com/Carvalho0331/sos.git
-cd sos
-```
-
-Cria uma branch:
-
-```bash
-git checkout -b minha-feature
-```
-
-Faz commit:
-
-```bash
-git commit -m "feat: nova funcionalidade"
-```
-
-Envia para o GitHub:
-
-```bash
-git push origin minha-feature
-```
-
-Depois abre um Pull Request 🚀
-
-
----
-
 # 👨‍💻 Autor
 
 ## Salimo Carvalho
-
